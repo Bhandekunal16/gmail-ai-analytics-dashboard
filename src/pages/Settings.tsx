@@ -21,11 +21,13 @@ export const Settings: React.FC = () => {
   const {
     apiBaseUrl,
     adminApiToken,
+    apiTimeoutSeconds,
     isDemoMode,
     isBackendOnline,
     isCheckingHealth,
     setApiBaseUrl,
     setAdminApiToken,
+    setApiTimeoutSeconds,
     setIsDemoMode,
     checkBackendHealth,
     resetToDefaults,
@@ -35,12 +37,14 @@ export const Settings: React.FC = () => {
 
   const [inputUrl, setInputUrl] = useState(apiBaseUrl);
   const [inputToken, setInputToken] = useState(adminApiToken);
+  const [inputTimeout, setInputTimeout] = useState<number>(apiTimeoutSeconds || 60);
   const [saveSuccess, setSaveSuccess] = useState(false);
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     setApiBaseUrl(inputUrl);
     setAdminApiToken(inputToken);
+    setApiTimeoutSeconds(Number(inputTimeout) || 60);
     setSaveSuccess(true);
     await checkBackendHealth();
     setTimeout(() => setSaveSuccess(false), 3000);
@@ -138,6 +142,27 @@ export const Settings: React.FC = () => {
               />
               <p className="text-[11px] text-neutral-500">
                 Transmitted in request headers via <code className="font-mono">X-Admin-Token</code>. Leave empty if your local backend does not enforce token protection.
+              </p>
+            </div>
+
+            {/* Request Timeout */}
+            <div className="space-y-1">
+              <label className="block text-xs font-medium text-neutral-700 dark:text-neutral-300">
+                Request Timeout (Seconds)
+              </label>
+              <div className="flex items-center gap-3">
+                <input
+                  type="number"
+                  min="5"
+                  max="300"
+                  value={inputTimeout}
+                  onChange={(e) => setInputTimeout(Number(e.target.value))}
+                  className="w-32 text-xs font-mono bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 text-neutral-900 dark:text-neutral-100 focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
+                />
+                <span className="text-xs text-neutral-500">seconds (default: 60s)</span>
+              </div>
+              <p className="text-[11px] text-neutral-500">
+                Prevents premature aborts when querying large Gmail inboxes or executing batch message synchronization.
               </p>
             </div>
 

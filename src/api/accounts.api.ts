@@ -87,7 +87,7 @@ export const accountsApi = {
         };
       }
     }
-    const response = await apiClient.post(`/gmail/accounts/${accountId}/sync`);
+    const response = await apiClient.post(`/gmail/accounts/${accountId}/sync`, {}, { timeout: 60000 });
     return response.data?.data || response.data;
   },
 

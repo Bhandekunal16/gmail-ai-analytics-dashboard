@@ -15,18 +15,35 @@ export function isDemoModeEnabled(): boolean {
   return val === 'true';
 }
 
+export function getApiTimeoutMs(): number {
+  const saved = localStorage.getItem('gmail_ai_api_timeout');
+  if (saved) {
+    const parsed = parseInt(saved, 10);
+    if (!isNaN(parsed) && parsed > 0) return parsed * 1000;
+  }
+  const envVal = import.meta.env.VITE_API_TIMEOUT;
+  if (envVal) {
+    const parsed = parseInt(envVal, 10);
+    if (!isNaN(parsed) && parsed > 0) return parsed * 1000;
+  }
+  return 60000; // 60 seconds default to allow Gmail API batch fetch
+}
+
 export const apiClient = axios.create({
-  timeout: 15000,
+  timeout: 60000,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
 });
 
-// Request interceptor: attach base URL and optional X-Admin-Token
+// Request interceptor: attach base URL, dynamic timeout, and optional X-Admin-Token
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     config.baseURL = getApiBaseUrl().replace(/\/+$/, '');
+    if (!config.timeout || config.timeout === 60000) {
+      config.timeout = getApiTimeoutMs();
+    }
     const token = getAdminApiToken();
     if (token) {
       config.headers.set('X-Admin-Token', token);
@@ -55,6 +72,8 @@ apiClient.interceptors.response.use(
       } else if (dataObj.error && typeof dataObj.error === 'string') {
         friendlyMessage = dataObj.error;
       }
+    } else if (error.code === 'ECONNABORTED' || error.message.includes('timeout')) {
+      friendlyMessage = `Request timed out (${Math.round(getApiTimeoutMs() / 1000)}s). The Gmail AI backend might still be synchronizing or querying Gmail messages. You can increase the timeout in Settings.`;
     } else if (error.code === 'ERR_NETWORK' || error.message.includes('Network Error')) {
       friendlyMessage = 'Unable to connect to Gmail AI backend at ' + getApiBaseUrl() + '. Check if backend is running or toggle Demo Mode.';
     }

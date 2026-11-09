@@ -38,6 +38,7 @@ export const emailsApi = {
           q: q || undefined,
           pageToken: pageToken || undefined,
         },
+        timeout: 60000,
       });
 
       const data = response.data?.data || response.data;
@@ -62,6 +63,7 @@ export const emailsApi = {
       try {
         const fallbackRes = await apiClient.get(`/gmail/accounts/${accountId}/emails`, {
           params: { q: q || undefined, pageToken: pageToken || undefined },
+          timeout: 60000,
         });
         const fbData = fallbackRes.data?.data || fallbackRes.data;
         if (Array.isArray(fbData)) {

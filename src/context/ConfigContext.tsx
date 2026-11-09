@@ -4,11 +4,13 @@ import axios from 'axios';
 interface ConfigContextType {
   apiBaseUrl: string;
   adminApiToken: string;
+  apiTimeoutSeconds: number;
   isDemoMode: boolean;
   isBackendOnline: boolean | null;
   isCheckingHealth: boolean;
   setApiBaseUrl: (url: string) => void;
   setAdminApiToken: (token: string) => void;
+  setApiTimeoutSeconds: (seconds: number) => void;
   setIsDemoMode: (enabled: boolean) => void;
   checkBackendHealth: () => Promise<boolean>;
   resetToDefaults: () => void;
@@ -16,6 +18,7 @@ interface ConfigContextType {
 
 const DEFAULT_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
 const DEFAULT_TOKEN = import.meta.env.VITE_ADMIN_API_TOKEN || '';
+const DEFAULT_TIMEOUT_SECONDS = 60;
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 
@@ -26,6 +29,15 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const [adminApiToken, setAdminApiTokenState] = useState<string>(() => {
     return localStorage.getItem('gmail_ai_admin_token') || DEFAULT_TOKEN;
+  });
+
+  const [apiTimeoutSeconds, setApiTimeoutSecondsState] = useState<number>(() => {
+    const saved = localStorage.getItem('gmail_ai_api_timeout');
+    if (saved) {
+      const val = parseInt(saved, 10);
+      if (!isNaN(val) && val > 0) return val;
+    }
+    return DEFAULT_TIMEOUT_SECONDS;
   });
 
   const [isDemoMode, setIsDemoModeState] = useState<boolean>(() => {
@@ -44,6 +56,11 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const setAdminApiToken = (token: string) => {
     setAdminApiTokenState(token);
     localStorage.setItem('gmail_ai_admin_token', token);
+  };
+
+  const setApiTimeoutSeconds = (seconds: number) => {
+    setApiTimeoutSecondsState(seconds);
+    localStorage.setItem('gmail_ai_api_timeout', String(seconds));
   };
 
   const setIsDemoMode = (enabled: boolean) => {
@@ -93,6 +110,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const resetToDefaults = () => {
     setApiBaseUrl(DEFAULT_BASE_URL);
     setAdminApiToken(DEFAULT_TOKEN);
+    setApiTimeoutSeconds(DEFAULT_TIMEOUT_SECONDS);
     setIsDemoMode(false);
     checkBackendHealth();
   };
@@ -102,11 +120,13 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       value={{
         apiBaseUrl,
         adminApiToken,
+        apiTimeoutSeconds,
         isDemoMode,
         isBackendOnline,
         isCheckingHealth,
         setApiBaseUrl,
         setAdminApiToken,
+        setApiTimeoutSeconds,
         setIsDemoMode,
         checkBackendHealth,
         resetToDefaults,
