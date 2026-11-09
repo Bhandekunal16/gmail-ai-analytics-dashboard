@@ -1,0 +1,6 @@
+{
+  "name": "Gmail AI Analytics Dashboard",
+  "description": "Multi-account Gmail AI classification and analytics dashboard with synchronization monitoring, category analytics, and email exploration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
