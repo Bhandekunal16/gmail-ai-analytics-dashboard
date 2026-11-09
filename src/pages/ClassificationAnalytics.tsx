@@ -128,7 +128,10 @@ export const ClassificationAnalytics: React.FC = () => {
           </div>
 
           {/* Subcategories Breakdown */}
-          <SubcategoryBreakdown categories={categories} />
+          <SubcategoryBreakdown
+            categories={categories}
+            allSubcategories={summary?.allSubcategories}
+          />
 
           {/* Email References Table */}
           <EmailReferencesTable emailReferences={emailReferences} categories={categories} />

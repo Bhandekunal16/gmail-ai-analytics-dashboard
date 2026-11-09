@@ -2,6 +2,7 @@ export interface SubcategoryMetric {
   name: string;
   count: number;
   percentage?: number;
+  parentCategory?: string;
 }
 
 export interface CategoryMetric {
@@ -14,6 +15,7 @@ export interface CategoryMetric {
 export interface ClassifiedEmailReference {
   id: string;
   messageId?: string;
+  emailId?: string;
   subject: string;
   sender: string;
   receivedAt: string;
@@ -27,8 +29,10 @@ export interface ClassifiedEmailReference {
 export interface ClassificationSummaryResponse {
   date: string; // YYYY-MM-DD
   accountId?: string;
+  accountEmail?: string;
   totalClassified: number;
   categories: CategoryMetric[];
+  allSubcategories?: SubcategoryMetric[];
   emailReferences: ClassifiedEmailReference[];
   generatedAt?: string;
 }

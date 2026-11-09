@@ -52,16 +52,23 @@ export function getStatusTheme(status: AccountStatus): {
 }
 
 export const CATEGORY_PALETTE: Record<string, string> = {
+  Finance: '#059669', // emerald-600
+  Security: '#dc2626', // red-600
+  Others: '#64748b', // slate-500
+  Other: '#64748b',
+  Unclassified: '#94a3b8',
   Primary: '#4f46e5', // indigo-600
   Work: '#2563eb', // blue-600
   Transactional: '#0891b2', // cyan-600
-  Finance: '#059669', // emerald-600
   Promotions: '#ea580c', // orange-600
   Marketing: '#d97706', // amber-600
   Updates: '#7c3aed', // violet-600
   Social: '#db2777', // pink-600
   Spam: '#dc2626', // red-600
-  Other: '#64748b', // slate-500
+  'Credit Card': '#0d9488', // teal-600
+  Salary: '#16a34a', // green-600
+  Loan: '#0284c7', // sky-600
+  'Verification Code': '#e11d48', // rose-600
 };
 
 export function getCategoryColor(categoryName: string, index: number = 0): string {

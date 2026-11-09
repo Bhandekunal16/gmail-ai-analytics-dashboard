@@ -137,7 +137,7 @@ export const Dashboard: React.FC = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* 3. Subcategory Breakdown */}
-        <SubcategoryBreakdown categories={categories} />
+        <SubcategoryBreakdown categories={categories} allSubcategories={summary?.allSubcategories} />
 
         {/* 4. Account-Wise Comparison */}
         <AccountComparisonChart accounts={accounts} />

@@ -100,11 +100,18 @@ export const EmailReferencesTable: React.FC<EmailReferencesTableProps> = ({
                         <div className="font-semibold text-neutral-900 dark:text-neutral-100 line-clamp-1">
                           {ref.subject}
                         </div>
-                        {ref.summary && (
-                          <div className="text-[11px] text-neutral-500 dark:text-neutral-400 mt-0.5 line-clamp-2">
-                            {ref.summary}
-                          </div>
-                        )}
+                        <div className="flex items-center gap-2 mt-0.5">
+                          {ref.emailId && (
+                            <span className="font-mono text-[10px] text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-950/60 px-1.5 py-0.2 rounded">
+                              ID: {ref.emailId}
+                            </span>
+                          )}
+                          {ref.summary && (
+                            <span className="text-[11px] text-neutral-500 dark:text-neutral-400 line-clamp-1">
+                              {ref.summary}
+                            </span>
+                          )}
+                        </div>
                       </td>
 
                       {/* Sender */}
