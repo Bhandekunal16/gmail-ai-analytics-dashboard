@@ -9,6 +9,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { ThemeProvider } from './context/ThemeContext';
 import { ConfigProvider } from './context/ConfigContext';
 import { AppRoutes } from './routes/AppRoutes';
+import { AuthProvider } from './context/AuthContext';
 
 export default function App() {
   const [queryClient] = useState(
@@ -28,9 +29,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <ThemeProvider>
         <ConfigProvider>
-          <BrowserRouter>
-            <AppRoutes />
-          </BrowserRouter>
+          <AuthProvider><BrowserRouter><AppRoutes /></BrowserRouter></AuthProvider>
         </ConfigProvider>
       </ThemeProvider>
     </QueryClientProvider>

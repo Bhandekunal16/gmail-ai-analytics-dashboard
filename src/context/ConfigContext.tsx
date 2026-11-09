@@ -3,13 +3,11 @@ import axios from 'axios';
 
 interface ConfigContextType {
   apiBaseUrl: string;
-  adminApiToken: string;
   apiTimeoutSeconds: number;
   isDemoMode: boolean;
   isBackendOnline: boolean | null;
   isCheckingHealth: boolean;
   setApiBaseUrl: (url: string) => void;
-  setAdminApiToken: (token: string) => void;
   setApiTimeoutSeconds: (seconds: number) => void;
   setIsDemoMode: (enabled: boolean) => void;
   checkBackendHealth: () => Promise<boolean>;
@@ -17,7 +15,6 @@ interface ConfigContextType {
 }
 
 const DEFAULT_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
-const DEFAULT_TOKEN = import.meta.env.VITE_ADMIN_API_TOKEN || '';
 const DEFAULT_TIMEOUT_SECONDS = 60;
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
@@ -27,9 +24,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     return localStorage.getItem('gmail_ai_api_base_url') || DEFAULT_BASE_URL;
   });
 
-  const [adminApiToken, setAdminApiTokenState] = useState<string>(() => {
-    return localStorage.getItem('gmail_ai_admin_token') || DEFAULT_TOKEN;
-  });
 
   const [apiTimeoutSeconds, setApiTimeoutSecondsState] = useState<number>(() => {
     const saved = localStorage.getItem('gmail_ai_api_timeout');
@@ -53,10 +47,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     localStorage.setItem('gmail_ai_api_base_url', url);
   };
 
-  const setAdminApiToken = (token: string) => {
-    setAdminApiTokenState(token);
-    localStorage.setItem('gmail_ai_admin_token', token);
-  };
 
   const setApiTimeoutSeconds = (seconds: number) => {
     setApiTimeoutSecondsState(seconds);
@@ -71,13 +61,8 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const checkBackendHealth = useCallback(async (): Promise<boolean> => {
     setIsCheckingHealth(true);
     try {
-      // Test either /gmail/accounts or /health
-      const headers: Record<string, string> = {};
-      if (adminApiToken) {
-        headers['X-Admin-Token'] = adminApiToken;
-      }
-      const response = await axios.get(`${apiBaseUrl.replace(/\/+$/, '')}/gmail/accounts`, {
-        headers,
+      const response = await axios.get(`${apiBaseUrl.replace(/\/+$/, '')}/auth/me`, {
+        withCredentials: true,
         timeout: 3000,
       });
       const online = response.status >= 200 && response.status < 400;
@@ -89,7 +74,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       setIsCheckingHealth(false);
       return false;
     }
-  }, [apiBaseUrl, adminApiToken]);
+  }, [apiBaseUrl]);
 
   // Initial silent check on mount
   useEffect(() => {
@@ -109,7 +94,6 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
 
   const resetToDefaults = () => {
     setApiBaseUrl(DEFAULT_BASE_URL);
-    setAdminApiToken(DEFAULT_TOKEN);
     setApiTimeoutSeconds(DEFAULT_TIMEOUT_SECONDS);
     setIsDemoMode(false);
     checkBackendHealth();
@@ -119,13 +103,11 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     <ConfigContext.Provider
       value={{
         apiBaseUrl,
-        adminApiToken,
         apiTimeoutSeconds,
         isDemoMode,
         isBackendOnline,
         isCheckingHealth,
         setApiBaseUrl,
-        setAdminApiToken,
         setApiTimeoutSeconds,
         setIsDemoMode,
         checkBackendHealth,

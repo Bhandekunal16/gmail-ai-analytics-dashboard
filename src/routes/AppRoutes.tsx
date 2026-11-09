@@ -7,11 +7,16 @@ import { EmailExplorer } from '../pages/EmailExplorer';
 import { ClassificationAnalytics } from '../pages/ClassificationAnalytics';
 import { PipelineMonitoring } from '../pages/PipelineMonitoring';
 import { Settings } from '../pages/Settings';
+import { Login } from '../pages/Login';
+import { useAuth } from '../context/AuthContext';
 
 export const AppRoutes: React.FC = () => {
+  const { user, loading } = useAuth();
+  if (loading) return null;
   return (
     <Routes>
-      <Route element={<AppLayout />}>
+      <Route path="/login" element={user ? <Navigate to="/" replace /> : <Login />} />
+      <Route element={user ? <AppLayout /> : <Navigate to="/login" replace />}>
         <Route path="/" element={<Dashboard />} />
         <Route path="/accounts" element={<Accounts />} />
         <Route path="/emails" element={<EmailExplorer />} />

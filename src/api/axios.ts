@@ -1,13 +1,9 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { tryDecodeResponsePayload } from '../utils/crypto';
 
-// Dynamic getter for base URL and admin token
+// Dynamic getter for the server URL. Authentication is a short-lived session token.
 export function getApiBaseUrl(): string {
   return localStorage.getItem('gmail_ai_api_base_url') || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
-}
-
-export function getAdminApiToken(): string {
-  return localStorage.getItem('gmail_ai_admin_token') || import.meta.env.VITE_ADMIN_API_TOKEN || '';
 }
 
 export function isDemoModeEnabled(): boolean {
@@ -31,22 +27,23 @@ export function getApiTimeoutMs(): number {
 
 export const apiClient = axios.create({
   timeout: 60000,
+  withCredentials: true,
   headers: {
     'Content-Type': 'application/json',
     Accept: 'application/json',
   },
 });
 
-// Request interceptor: attach base URL, dynamic timeout, and optional X-Admin-Token
+// Request interceptor: attach base URL, dynamic timeout, and the in-memory-tab session token.
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
     config.baseURL = getApiBaseUrl().replace(/\/+$/, '');
     if (!config.timeout || config.timeout === 60000) {
       config.timeout = getApiTimeoutMs();
     }
-    const token = getAdminApiToken();
+    const token = sessionStorage.getItem('gmail_ai_access_token');
     if (token) {
-      config.headers.set('X-Admin-Token', token);
+      config.headers.set('Authorization', `Bearer ${token}`);
     }
     return config;
   },
