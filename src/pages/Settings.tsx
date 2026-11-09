@@ -114,11 +114,14 @@ export const Settings: React.FC = () => {
                 type="text"
                 value={inputUrl}
                 onChange={(e) => setInputUrl(e.target.value)}
-                placeholder="http://localhost:8002"
+                placeholder="Same origin (leave blank)"
+                disabled={import.meta.env.PROD}
                 className="w-full text-xs font-mono bg-neutral-50 dark:bg-neutral-800 border border-neutral-200 dark:border-neutral-700 rounded-lg px-3 py-2 text-neutral-900 dark:text-neutral-100 focus:outline-hidden focus:ring-1 focus:ring-indigo-500"
               />
               <p className="text-[11px] text-neutral-500">
-                Default: <code className="font-mono">http://localhost:8002</code>. Matches the existing Express reverse proxy server.
+                {import.meta.env.PROD
+                  ? "Production API requests always use this dashboard's origin."
+                  : <>Leave blank to use this origin. Set <code className="font-mono">http://localhost:8002</code> only for separate local Vite development.</>}
               </p>
             </div>
 

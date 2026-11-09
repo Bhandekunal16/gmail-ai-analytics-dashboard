@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
-import axios from 'axios';
+import { apiClient } from '../api/axios';
 
 interface ConfigContextType {
   apiBaseUrl: string;
@@ -14,13 +14,14 @@ interface ConfigContextType {
   resetToDefaults: () => void;
 }
 
-const DEFAULT_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
+const DEFAULT_BASE_URL = import.meta.env.PROD ? '' : (import.meta.env.VITE_API_BASE_URL || '');
 const DEFAULT_TIMEOUT_SECONDS = 60;
 
 const ConfigContext = createContext<ConfigContextType | undefined>(undefined);
 
 export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [apiBaseUrl, setApiBaseUrlState] = useState<string>(() => {
+    if (import.meta.env.PROD) return '';
     return localStorage.getItem('gmail_ai_api_base_url') || DEFAULT_BASE_URL;
   });
 
@@ -43,8 +44,13 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [isCheckingHealth, setIsCheckingHealth] = useState<boolean>(false);
 
   const setApiBaseUrl = (url: string) => {
-    setApiBaseUrlState(url);
-    localStorage.setItem('gmail_ai_api_base_url', url);
+    const nextUrl = import.meta.env.PROD ? '' : url;
+    setApiBaseUrlState(nextUrl);
+    if (nextUrl) {
+      localStorage.setItem('gmail_ai_api_base_url', nextUrl);
+    } else {
+      localStorage.removeItem('gmail_ai_api_base_url');
+    }
   };
 
 
@@ -61,10 +67,7 @@ export const ConfigProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const checkBackendHealth = useCallback(async (): Promise<boolean> => {
     setIsCheckingHealth(true);
     try {
-      const response = await axios.get(`${apiBaseUrl.replace(/\/+$/, '')}/auth/me`, {
-        withCredentials: true,
-        timeout: 3000,
-      });
+      const response = await apiClient.get('/auth/me', { timeout: 3000 });
       const online = response.status >= 200 && response.status < 400;
       setIsBackendOnline(online);
       setIsCheckingHealth(false);

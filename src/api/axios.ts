@@ -1,9 +1,16 @@
 import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
 import { tryDecodeResponsePayload } from '../utils/crypto';
 
+declare module 'axios' {
+  interface InternalAxiosRequestConfig {
+    _retry?: boolean;
+  }
+}
+
 // Dynamic getter for the server URL. Authentication is a short-lived session token.
 export function getApiBaseUrl(): string {
-  return localStorage.getItem('gmail_ai_api_base_url') || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8002';
+  if (import.meta.env.PROD) return '';
+  return localStorage.getItem('gmail_ai_api_base_url') || import.meta.env.VITE_API_BASE_URL || '';
 }
 
 export function isDemoModeEnabled(): boolean {
@@ -34,6 +41,31 @@ export const apiClient = axios.create({
   },
 });
 
+let refreshPromise: Promise<string> | null = null;
+
+function refreshAccessToken(): Promise<string> {
+  if (!refreshPromise) {
+    const baseUrl = getApiBaseUrl().replace(/\/+$/, '');
+    refreshPromise = axios
+      .post<{ accessToken?: string }>(
+        `${baseUrl}/auth/refresh`,
+        {},
+        { withCredentials: true },
+      )
+      .then(({ data }) => {
+        if (!data.accessToken) {
+          throw new Error('Refresh response did not contain an access token');
+        }
+        sessionStorage.setItem('gmail_ai_access_token', data.accessToken);
+        return data.accessToken;
+      })
+      .finally(() => {
+        refreshPromise = null;
+      });
+  }
+  return refreshPromise;
+}
+
 // Request interceptor: attach base URL, dynamic timeout, and the in-memory-tab session token.
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
@@ -59,7 +91,30 @@ apiClient.interceptors.response.use(
     }
     return response;
   },
-  (error: AxiosError) => {
+  async (error: AxiosError) => {
+    const originalRequest = error.config;
+    const requestUrl = originalRequest?.url || '';
+    const isPublicAuthRequest =
+      /\/auth\/(?:refresh|admin\/login|otp\/request|otp\/verify)(?:$|\?)/.test(
+        requestUrl,
+      );
+
+    if (
+      error.response?.status === 401 &&
+      originalRequest &&
+      !originalRequest._retry &&
+      !isPublicAuthRequest
+    ) {
+      originalRequest._retry = true;
+      try {
+        const accessToken = await refreshAccessToken();
+        originalRequest.headers.set('Authorization', `Bearer ${accessToken}`);
+        return apiClient(originalRequest);
+      } catch {
+        sessionStorage.removeItem('gmail_ai_access_token');
+      }
+    }
+
     // Enhance error message for consumer
     let friendlyMessage = error.message;
     if (error.response?.data && typeof error.response.data === 'object') {
